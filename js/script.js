@@ -3,7 +3,7 @@ const global = {
 }
 
 //-----------Display 20 most popular Movies--------------
-async function displayPopularMovies(){
+async function displayPopularMovies() {
     const { results } = await fetchAPIData('movie/popular')
     // console.log(results);
 
@@ -12,8 +12,7 @@ async function displayPopularMovies(){
         div.classList.add('card');
         div.innerHTML = `
         <a href="movie-details.html?id=${movie.id}">
-            ${
-                movie.poster_path
+            ${movie.poster_path
                 ? `
                 <img
                 src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
@@ -37,17 +36,16 @@ async function displayPopularMovies(){
 }
 
 //-----------Display 20 most popular TV Shows--------------
-async function displayPopularShows(){
+async function displayPopularShows() {
     const { results } = await fetchAPIData('tv/popular')
-    console.log(results);
+    // console.log(results);
 
     results.forEach(show => {
         const div = document.createElement('div');
         div.classList.add('card');
         div.innerHTML = `
         <a href="tv-details.html?id=${show.id}">
-            ${
-                show.poster_path
+            ${show.poster_path
                 ? ` 
                 <img
                     src="https://image.tmdb.org/t/p/w500${show.poster_path}"
@@ -71,11 +69,10 @@ async function displayPopularShows(){
 }
 
 //-----------Display Movie Details--------------
-async function displayMovieDetails(){
-    const movieId = window.location.search;
-    console.log(window.location.search.split('=')[1]); //?id=792307
-
-    const movie = await fetchAPIData(`movie${movieId}`);
+async function displayMovieDetails() {
+    // const movieId = window.location.search;
+    const movieId = window.location.search.split('=')[1]; //?id=792307
+    const movie = await fetchAPIDataWithAuth(`movie/${movieId}`);
 
     console.log(movie)
     const div = document.createElement('div');
@@ -83,19 +80,17 @@ async function displayMovieDetails(){
     div.innerHTML = `
         <div class="details-top">
             <div>
-                ${
-                    movie.poster_path
-                    ? `
+                ${movie.poster_path? `
                     <img
                         src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
                         class="card-img-top"
                         alt="${movie.title}"
-                        />` : `<img
+                    />` : 
+                    `<img
                         src="images/no-image.jpg"
                         class="card-img-top"
                         alt="${movie.title}"
-                    />`
-                }
+                    />`}
             </div>
             <div>
                 <h2>Movie Title</h2>
@@ -115,7 +110,7 @@ async function displayMovieDetails(){
         <div class="details-bottom">
             <h2>Movie Info</h2>
             <ul>
-                <li><span class="text-secondary">Budget:</span> $${addCommasToNumber(movie.budge)}</li>
+                <li><span class="text-secondary">Budget:</span> $${addCommasToNumber(movie.budget)}</li>
                 <li><span class="text-secondary">Revenue:</span> $${addCommasToNumber(movie.revenue)}</li>
                 <li><span class="text-secondary">Runtime:</span> ${movie.runtime} minutes</li>
                 <li><span class="text-secondary">Status:</span> ${movie.status}</li>
@@ -129,15 +124,41 @@ async function displayMovieDetails(){
 
 //-----------Fetch data from TMDB API--------------
 //url 'https://api.themoviedb.org/3/movie/11?api_key=ee71c49c9ede0d3c13c83a295fa3c70c'
+async function fetchAPIDataWithAuth(endpoint) {
+    const API_KEY = 'ee71c49c9ede0d3c13c83a295fa3c70c';
+    const API_URL = 'https://api.themoviedb.org/3';
+    const API_Full_URL = `${API_URL}/${endpoint}?api_key=${API_KEY}&language=en-US`
+
+    // console.log(API_Full_URL);
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlZTcxYzQ5YzllZGUwZDNjMTNjODNhMjk1ZmEzYzcwYyIsInN1YiI6IjY1ZjIwNWQxMmZkZWM2MDE3MDIxM2I3NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.eOeJOvWLYwxurh5C4AyEunSobRnkq0LfHFcCNT70RZU'
+        }
+    };
+
+    showSpinner();
+
+    const response = await fetch(API_Full_URL, options)
+
+    const data = await response.json();
+
+    hideSpinner();
+
+    return data;
+}
+
+
 async function fetchAPIData(endpoint) {
-    
-    const API_KEY = ''; 
+
+    const API_KEY = 'ee71c49c9ede0d3c13c83a295fa3c70c';
     const API_URL = 'https://api.themoviedb.org/3';
 
     showSpinner();
 
     const response = await fetch(`${API_URL}/${endpoint}?api_key=${API_KEY}&language=en-US`)
-    
+
     const data = await response.json();
 
     hideSpinner();
@@ -157,37 +178,37 @@ function hideSpinner() {
 //-----------Hightlight Active Link--------------
 function HightlightActiveLink() {
     const links = document.querySelectorAll('.nav-link')
-    links.forEach((link) => { 
+    links.forEach((link) => {
         //check if the link is equal to the page 
-        if(link.getAttribute('href') === global.currentPage){ 
+        if (link.getAttribute('href') === global.currentPage) {
             link.classList.add('active');
         }
-    }) 
+    })
 }
 
 //-------------Add Commas to Number---------------
-function addCommasToNumber(number){
+function addCommasToNumber(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 
 //-------------Init App, Router-----------------
-function init(){
-    switch(global.currentPage){
+function init() {
+    switch (global.currentPage) {
         case '/':
-        case '/index.html': 
+        case '/index.html':
             displayPopularMovies();
             break;
-        case '/shows.html': 
+        case '/shows.html':
             displayPopularShows()
             break;
-        case '/movie-details.html': 
+        case '/movie-details.html':
             displayMovieDetails()
             break;
-        case '/tv-details.html': 
+        case '/tv-details.html':
             console.log('TV Details');
             break;
-        case '/search.html': 
+        case '/search.html':
             console.log('Search');
             break;
     }
